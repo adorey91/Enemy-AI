@@ -266,7 +266,7 @@
                 {
                     "name": "",
                     "id": "19ddb132-c8c5-41a7-b1ce-150021af39c6",
-                    "path": "<Keyboard>/shift",
+                    "path": "<Keyboard>/leftShift",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",

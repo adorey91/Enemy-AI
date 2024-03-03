@@ -16,14 +16,14 @@ public class Controller : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
     }
 
-    public void Update()
-    {
-        if(moveTarget != null && Time.time - lastMoveToUpdate > moveToUpdateRate)
-        {
-            lastMoveToUpdate = Time.time;
-            MoveToPosition(moveTarget.position);
-        }
-    }
+    //public void Update()
+    //{
+    //    if(moveTarget != null && Time.time - lastMoveToUpdate > moveToUpdateRate)
+    //    {
+    //        lastMoveToUpdate = Time.time;
+    //        MoveToPosition(moveTarget.position);
+    //    }
+    //}
 
     public void LookTowards(Vector3 direction)
     {

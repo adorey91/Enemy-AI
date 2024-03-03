@@ -19,6 +19,7 @@ public class Player : Character
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float walkSpeed;
+    [SerializeField] private float moveSpeedMultipler;
     private bool isRunning;
 
     [Header("View Settings")]
@@ -41,14 +42,14 @@ public class Player : Character
         player = GetComponent<CapsuleCollider>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        curHp = maxHp;
     }
 
     private void FixedUpdate()
     {
-        MovePlayer();
+        
 
-        if (playerInput != null)
-            moveSpeed = walkSpeed;
+        MovePlayer();
     }
 
     private void MovePlayer()
@@ -63,7 +64,9 @@ public class Player : Character
         movementVector.Normalize();
 
         if (isRunning)
-            moveSpeed = walkSpeed * 2;
+            moveSpeed = walkSpeed * moveSpeedMultipler;
+        else
+            moveSpeed = walkSpeed;
 
         rb.MovePosition(rb.position + movementVector.normalized * moveSpeed * Time.deltaTime);
     }

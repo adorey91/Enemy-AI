@@ -21,11 +21,9 @@ public class Enemy : Character
     [Header("Ranges")]
     [SerializeField] private float chaseRange;
     [SerializeField] private float attackRange;
-    [SerializeField] private float sightRange;
 
     [Header("Attack")]
-    [SerializeField] private float attackRate;
-    private float lastAttackTime;
+    [SerializeField] private float timeBetweenAttacks;
     bool alreadyAttacked;
 
     [Header("Searching")]
@@ -92,12 +90,23 @@ public class Enemy : Character
 
     void ChasingState()
     {
-        
+        controller.MoveToTarget(target.transform);
+
+        if (targetDistance > chaseRange)
+        {
+            curState = State.search;
+            searchTime = Time.time;
+        }
+        if(targetDistance < attackRange)
+            curState = State.attack;
     }
 
     void SearchingState()
     {
-
+        if (searchTime > 4f)
+            curState = State.patrol;
+        if (targetDistance < chaseRange)
+            curState = State.chasing;
     }
 
     void AttackState()
