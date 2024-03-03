@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -14,6 +15,7 @@ public class EnemyState : Character
         Retreat,
     }
 
+    [SerializeField] TMP_Text stateText;
     private State curState = 0;
 
     public Controller controller;
@@ -33,6 +35,8 @@ public class EnemyState : Character
 
     [Header("Search Settings")]
     [SerializeField] private float searchTime;
+    [SerializeField] private float searchRange;
+    private float searchTimer;
 
     [Header("Attack Settings")]
     [SerializeField] private float timeBetweenAttacks;
@@ -84,6 +88,7 @@ public class EnemyState : Character
     {
         meshRenderer.material.color = Color.blue;
         controller.MoveToPosition(patrolWaypoints[waypointNumber].position);
+        stateText.text = "Patroling";
 
         if(Vector3.Distance(agent.transform.position, patrolWaypoints[waypointNumber].position) <= distanceThreshold)
         {
@@ -100,23 +105,42 @@ public class EnemyState : Character
 
     void ChaseState()
     {
-        meshRenderer.material.color = new Color(1, 0.6f, 0);
-
         controller.MoveToTarget(target.transform);
+        meshRenderer.material.color = new Color(1, 0.6f, 0);
+        stateText.text = "Chasing";
 
-        if(targetDistance < attackRange && targetDistance > chaseRange)
-            curState = State.Attack;
-        if (targetDistance > chaseRange)
+        if(targetDistance < attackRange)
+        curState = State.Attack;
+    else if (targetDistance > chaseRange)
             curState = State.Search;
-        if (curHp < healthPanic)
+        else if (curHp < healthPanic)
             curState = State.Retreat;
+
+        searchTimer = searchTime;
     }
 
     void SearchState()
     {
-        controller.StopMovement();
+        
+        stateText.text = "Searching";
         meshRenderer.material.color = Color.grey;
 
+        searchTimer -= Time.deltaTime;
+
+        Vector3 randomDirection = Random.insideUnitSphere * searchRange;
+        randomDirection += transform.position;
+        NavMeshHit hit;
+        NavMesh.SamplePosition(randomDirection, out hit, searchRange, 1);
+        Vector3 finalPosition = hit.position;
+        controller.MoveToPosition(finalPosition);
+
+
+        if (searchTimer<=0f)
+            curState = State.Patrol;
+        if (targetDistance < chaseRange && targetDistance > attackRange)
+            curState = State.Chase;
+        if(targetDistance < attackRange)
+            curState = State.Attack;
         if (curHp < healthPanic)
             curState = State.Retreat;
     }
@@ -124,6 +148,7 @@ public class EnemyState : Character
     void AttackState()
     {
         this.GetComponent<MeshRenderer>().material.color = Color.red;
+        stateText.text = "Attacking";
         controller.StopMovement();
 
         if (targetDistance > attackRange)
@@ -137,6 +162,7 @@ public class EnemyState : Character
     {
         meshRenderer.material.color = Color.magenta;
         controller.StopMovement();
+        stateText.text = "Retreat";
     }
 
 }

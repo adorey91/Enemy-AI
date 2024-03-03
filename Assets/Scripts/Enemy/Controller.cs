@@ -5,8 +5,6 @@ using UnityEngine.AI;
 
 public class Controller : MonoBehaviour
 {
-    private float moveToUpdateRate = 1.0f;
-    private float lastMoveToUpdate;
     private Transform moveTarget;
 
     private NavMeshAgent agent;
@@ -16,15 +14,6 @@ public class Controller : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
     }
 
-    //public void Update()
-    //{
-    //    if(moveTarget != null && Time.time - lastMoveToUpdate > moveToUpdateRate)
-    //    {
-    //        lastMoveToUpdate = Time.time;
-    //        MoveToPosition(moveTarget.position);
-    //    }
-    //}
-
     public void LookTowards(Vector3 direction)
     {
         transform.rotation = Quaternion.LookRotation(direction);
@@ -33,6 +22,7 @@ public class Controller : MonoBehaviour
     public void MoveToTarget(Transform target)
     {
         moveTarget = target;
+        MoveToPosition(target.position);
     }
 
     public void MoveToPosition(Vector3 position)
