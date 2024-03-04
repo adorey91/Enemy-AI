@@ -43,8 +43,9 @@ public class EnemyState : Character
 
     [Header("Retreat")]
     [SerializeField] private int healthPanic;
+    public float enemyDistanceRun;
 
-    private float targetDistance;
+    public float targetDistance;
     NavMeshAgent agent;
 
     private void Start()
@@ -57,7 +58,9 @@ public class EnemyState : Character
     private void Update()
     {
         targetDistance = Vector3.Distance(transform.position, target.transform.position);
+
         HealthBarUI.transform.rotation = Quaternion.LookRotation(transform.position - Camera.main.transform.position);
+
         UpdateState();
     }
 
@@ -167,7 +170,7 @@ public class EnemyState : Character
     void RetreatState()
     {
         meshRenderer.material.color = Color.magenta;
-        controller.StopMovement();
+        controller.RunAway(target.transform);
         stateText.text = "Retreat";
     }
 

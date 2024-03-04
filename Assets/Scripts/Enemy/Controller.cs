@@ -13,11 +13,15 @@ public class Controller : MonoBehaviour
    
 
     private float searchRange;
+    private float enemyDistanceRun;
+    private float targetDistance;
 
     public void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         searchRange = enemyState.searchRange;
+        enemyDistanceRun = enemyState.enemyDistanceRun;
+        targetDistance = enemyState.targetDistance;
     }
 
     public void LookTowards(Vector3 direction)
@@ -40,6 +44,21 @@ public class Controller : MonoBehaviour
     public void StopMovement()
     {
         agent.isStopped=true;
+    }
+
+    public void RunAway(Transform target)
+    {
+
+        Debug.Log(target.ToString());
+
+        if(targetDistance < enemyDistanceRun)
+        {
+            Vector3 dirToPlayer = transform.position + target.position;
+            Vector3 newPos = transform.position + dirToPlayer;
+            Debug.Log(newPos.ToString());
+
+            MoveToPosition(newPos);
+        }
     }
 
     public void SearchMovement()
