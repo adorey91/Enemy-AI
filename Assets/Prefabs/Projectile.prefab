@@ -4928,8 +4928,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
-  damage: 2
-  lifeTime: 0.8
+  damage: 1
+  lifeTime: 1
 --- !u!54 &4290530749428621765
 Rigidbody:
   m_ObjectHideFlags: 0

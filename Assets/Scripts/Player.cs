@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,8 +8,9 @@ public class Player : Character
 {
     public static Player current;
     private Vector2 playerInput;
-    private CapsuleCollider player;
     private Rigidbody rb;
+
+    [SerializeField] private TMP_Text healthPercentage;
 
     [Header("Attack")]
     [SerializeField] private float attackRange;
@@ -39,16 +41,17 @@ public class Player : Character
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
-        player = GetComponent<CapsuleCollider>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         curHp = maxHp;
     }
+    private void Update()
+    {
+        healthPercentage.text = $"{((float)curHp / (float)maxHp) * 100} %";
+    }
 
     private void FixedUpdate()
     {
-        
-
         MovePlayer();
     }
 

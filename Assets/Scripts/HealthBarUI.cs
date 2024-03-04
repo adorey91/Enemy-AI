@@ -13,11 +13,6 @@ public class HealthBarUI : MonoBehaviour
         UpdateHealthBar();
     }
 
-    public void Update()
-    {
-        transform.rotation = Quaternion.LookRotation(transform.position - Camera.main.transform.position);
-    }
-
     public void OnEnable()
     {
         character.onTakeDamage += UpdateHealthBar;

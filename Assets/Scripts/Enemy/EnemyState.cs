@@ -20,6 +20,7 @@ public class EnemyState : Character
 
     public Controller controller;
     private MeshRenderer meshRenderer;
+    public GameObject HealthBarUI;
 
     [Header("Range")]
     [SerializeField] private float chaseRange;
@@ -30,22 +31,20 @@ public class EnemyState : Character
     [SerializeField] int waypointNumber;
     float distanceThreshold = 0.1f;
 
-    [Header("Chase Settings")]
-    [SerializeField] float chaseSpeed;
-
     [Header("Search Settings")]
     [SerializeField] private float searchTime;
-    [SerializeField] private float searchRange;
+    public float searchRange;
     private float searchTimer;
 
     [Header("Attack Settings")]
     [SerializeField] private float timeBetweenAttacks;
+    [SerializeField] GameObject attackPrefab;
     bool alreadyAttacked;
 
     [Header("Retreat")]
     [SerializeField] private int healthPanic;
 
-    [SerializeField]private float targetDistance;
+    private float targetDistance;
     NavMeshAgent agent;
 
     private void Start()
@@ -58,7 +57,7 @@ public class EnemyState : Character
     private void Update()
     {
         targetDistance = Vector3.Distance(transform.position, target.transform.position);
-
+        HealthBarUI.transform.rotation = Quaternion.LookRotation(transform.position - Camera.main.transform.position);
         UpdateState();
     }
 
@@ -90,7 +89,7 @@ public class EnemyState : Character
         controller.MoveToPosition(patrolWaypoints[waypointNumber].position);
         stateText.text = "Patroling";
 
-        if(Vector3.Distance(agent.transform.position, patrolWaypoints[waypointNumber].position) <= distanceThreshold)
+        if (Vector3.Distance(agent.transform.position, patrolWaypoints[waypointNumber].position) <= distanceThreshold)
         {
             waypointNumber++;
             if (waypointNumber == patrolWaypoints.Length)
@@ -99,7 +98,7 @@ public class EnemyState : Character
 
         if (targetDistance < chaseRange && targetDistance > attackRange)
             curState = State.Chase;
-        if(targetDistance < attackRange)
+        if (targetDistance < attackRange)
             curState = State.Attack;
     }
 
@@ -109,9 +108,9 @@ public class EnemyState : Character
         meshRenderer.material.color = new Color(1, 0.6f, 0);
         stateText.text = "Chasing";
 
-        if(targetDistance < attackRange)
-        curState = State.Attack;
-    else if (targetDistance > chaseRange)
+        if (targetDistance < attackRange)
+            curState = State.Attack;
+        else if (targetDistance > chaseRange)
             curState = State.Search;
         else if (curHp < healthPanic)
             curState = State.Retreat;
@@ -121,25 +120,17 @@ public class EnemyState : Character
 
     void SearchState()
     {
-        
         stateText.text = "Searching";
         meshRenderer.material.color = Color.grey;
 
         searchTimer -= Time.deltaTime;
+        controller.SearchMovement();
 
-        Vector3 randomDirection = Random.insideUnitSphere * searchRange;
-        randomDirection += transform.position;
-        NavMeshHit hit;
-        NavMesh.SamplePosition(randomDirection, out hit, searchRange, 1);
-        Vector3 finalPosition = hit.position;
-        controller.MoveToPosition(finalPosition);
-
-
-        if (searchTimer<=0f)
+        if (searchTimer <= 0f)
             curState = State.Patrol;
         if (targetDistance < chaseRange && targetDistance > attackRange)
             curState = State.Chase;
-        if(targetDistance < attackRange)
+        if (targetDistance < attackRange)
             curState = State.Attack;
         if (curHp < healthPanic)
             curState = State.Retreat;
@@ -151,11 +142,26 @@ public class EnemyState : Character
         stateText.text = "Attacking";
         controller.StopMovement();
 
+        if(!alreadyAttacked)
+        {
+            Vector3 directionToTarget = target.transform.position - transform.position;
+            directionToTarget.Normalize();
+            Vector3 spawnPosition = transform.position + directionToTarget * 1f;
+
+            GameObject proj = Instantiate(attackPrefab, spawnPosition, Quaternion.LookRotation(target.transform.position - transform.position));
+            proj.GetComponent<Projectile>().Setup(this);
+            alreadyAttacked = true;
+            Invoke(nameof(ResetAttack), timeBetweenAttacks);
+        }
+
+
+        if (targetDistance > chaseRange && targetDistance > attackRange)
+            curState = State.Search;
         if (targetDistance > attackRange)
             curState = State.Chase;
-
         if (curHp < healthPanic)
             curState = State.Retreat;
+
     }
 
     void RetreatState()
@@ -163,6 +169,11 @@ public class EnemyState : Character
         meshRenderer.material.color = Color.magenta;
         controller.StopMovement();
         stateText.text = "Retreat";
+    }
+
+    void ResetAttack()
+    {
+        alreadyAttacked = false;
     }
 
 }

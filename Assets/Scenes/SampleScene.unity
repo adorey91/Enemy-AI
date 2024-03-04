@@ -332,6 +332,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 595832005}
+  - component: {fileID: 595832006}
   m_Layer: 5
   m_Name: PlayerHealth
   m_TagString: Untagged
@@ -360,6 +361,20 @@ RectTransform:
   m_AnchoredPosition: {x: 20, y: -20}
   m_SizeDelta: {x: 500, y: 40}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &595832006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 595832004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0ece18a19948044fb4a6211275f56de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthFill: {fileID: 1189580521}
+  character: {fileID: 4758291562831212330}
 --- !u!1 &638096460
 GameObject:
   m_ObjectHideFlags: 0
@@ -1531,6 +1546,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc89023d815fa5443be0aa7781a4f01e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  movePoint: {x: 0, y: 0, z: 0}
+  enemyState: {fileID: 1489317228}
+  movePointSet: 0
 --- !u!114 &1489317228
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1547,20 +1565,20 @@ MonoBehaviour:
   maxHp: 10
   stateText: {fileID: 557253616}
   controller: {fileID: 1489317227}
-  chaseRange: 8
-  attackRange: 4
+  HealthBarUI: {fileID: 1593982192}
+  chaseRange: 9
+  attackRange: 7
   patrolWaypoints:
   - {fileID: 257122294}
   - {fileID: 1588853888}
   - {fileID: 731559695}
   - {fileID: 1115412957}
   waypointNumber: 0
-  chaseSpeed: 0
   searchTime: 10
-  searchRange: 0
-  timeBetweenAttacks: 0
+  searchRange: 6
+  timeBetweenAttacks: 1
+  attackPrefab: {fileID: 7005957522399575909, guid: f9ce84d23d536ff46b0851006145e986, type: 3}
   healthPanic: 3
-  targetDistance: 0
 --- !u!1 &1500094181
 GameObject:
   m_ObjectHideFlags: 0
@@ -2063,8 +2081,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76e819c422c3f6e49807e1b9a91189bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  curHp: 0
+  curHp: 10
   maxHp: 10
+  healthPercentage: {fileID: 1085999620}
   attackRange: 0
   attackRate: 0
   attackPrefab: {fileID: 7005957522399575909, guid: f9ce84d23d536ff46b0851006145e986, type: 3}
