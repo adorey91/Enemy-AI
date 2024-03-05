@@ -1,0 +1,54 @@
+Functional Specifications:
+
+create enemies with functioning AI state machine
+
+visually distinguish states from each other
+
+use colours to indicate various states, or speed, etc.
+
+show colours in a HUD / GUI legend
+
+User must be able to tell which state the enemy is in.
+
+Helps for debugging, evaluation, and showcasing to industry.
+
+use distance to calculate when enemy "sees" the player (player got too close).
+
+use distance to calculate when enemy no longer "sees" the player (player escaped too far).
+
+If enemy "shoots" at player, consider attacking at a far distance.
+
+If enemy "attacks" player via melee combat, consider attacking at a close distance.
+
+Actual shooting/attacking/etc. functionality not needed.
+
+Technical Specifications:
+use Unity
+use NavMesh
+create an "enemy" (NavMesh agent) that can follow a target (should it choose to)
+
+use a state machine, create the following states:
+patrolling (no knowledge of player's existence)
+target = 4 or more base targets
+chasing ("sees" player and chases)
+target = player (target updates to player position each frame)
+searching (investigating last known place player was "seen")
+target = last known position of player (target no longer updates to player position and should be set to last "seen" player potion)
+attacking (gets close enough to player to stop and "shoot" or "attack"*)
+target = n/a -- irrelevant; enemy has stopped to shoot/attack player
+retreating (cannot find player after set time limit)
+target = 1 of the patrolling base targets
+
+implement the following state transitions:
+patrolling to chasing
+chasing to searching
+chasing to attacking
+searching to retreating
+searching to chasing
+searching to attacking? likely not
+retreating to patrolling
+retreating to chasing
+etc.
+ensure state switching does not flicker back and forth frame by frame.
+encapsulate state machine -- lack of encapsulation is automatic fail (maximum 50% grade)
+this can be as simple as a single switch statement or as complex as separate classes for each state

@@ -53,21 +53,18 @@ public class Controller : MonoBehaviour
 
         Debug.Log(target.ToString());
 
+
         if (targetDistance < enemyDistanceRun)
         {
-            if (targetDistance < enemyDistanceRun)
-            {
-                Vector3 dirToPlayer = transform.position - target.position;
-                Vector3 newPos = transform.position + dirToPlayer.normalized * enemyDistanceRun;
-                Debug.Log("New position: " + newPos.ToString());
-                MoveToPosition(newPos);
-            }
-            else
-            {
-                Debug.Log("Not running away - target distance is greater than enemyDistanceRun");
-            }
+            Vector3 dirToPlayer = transform.position - target.position;
+            Vector3 newPos = transform.position + dirToPlayer.normalized * enemyDistanceRun;
+            Debug.Log("New position: " + newPos.ToString());
+            MoveToPosition(newPos);
         }
-     
+        else
+        {
+            Debug.Log("Not running away - target distance is greater than enemyDistanceRun");
+        }
     }
 
     public void SearchMovement()
