@@ -6,7 +6,7 @@ using UnityEngine.AI;
 
 public class EnemyState : Character
 {
-    enum State
+    public enum State
     {
         Patrol,
         Chase,
@@ -15,10 +15,11 @@ public class EnemyState : Character
         Retreat,
     }
 
-    [SerializeField] TMP_Text stateText;
-    private State curState = 0;
+    private State enemyState;
 
-    public Controller controller;
+    [SerializeField] TMP_Text stateText;
+
+    private Controller controller;
     private MeshRenderer meshRenderer;
     public GameObject HealthBarUI;
 
@@ -54,6 +55,7 @@ public class EnemyState : Character
         agent = GetComponent<NavMeshAgent>();
         target = Player.current;
         meshRenderer = GetComponent<MeshRenderer>();
+        controller = GetComponent<Controller>();
     }
 
     private void Update()
@@ -67,7 +69,7 @@ public class EnemyState : Character
 
     void UpdateState()
     {
-        switch (curState)
+        switch (enemyState)
         {
             case State.Patrol:
                 PatrolState();
@@ -102,9 +104,9 @@ public class EnemyState : Character
         }
 
         if (targetDistance < chaseRange && targetDistance > attackRange)
-            curState = State.Chase;
+            enemyState = State.Chase;
         if (targetDistance < attackRange)
-            curState = State.Attack;
+            enemyState = State.Attack;
     }
 
     void ChaseState()
@@ -115,11 +117,11 @@ public class EnemyState : Character
         stateText.text = "Chasing";
 
         if (targetDistance < attackRange)
-            curState = State.Attack;
+            enemyState = State.Attack;
         else if (targetDistance > chaseRange)
-            curState = State.Search;
+            enemyState = State.Search;
         else if (curHp < healthPanic)
-            curState = State.Retreat;
+            enemyState = State.Retreat;
 
         searchTimer = searchTime;
     }
@@ -134,13 +136,13 @@ public class EnemyState : Character
         controller.SearchMovement();
 
         if (searchTimer <= 0f)
-            curState = State.Patrol;
+            enemyState = State.Patrol;
         if (targetDistance < chaseRange && targetDistance > attackRange)
-            curState = State.Chase;
+            enemyState = State.Chase;
         if (targetDistance < attackRange)
-            curState = State.Attack;
+            enemyState = State.Attack;
         if (curHp < healthPanic)
-            curState = State.Retreat;
+            enemyState = State.Retreat;
     }
 
     void AttackState()
@@ -164,17 +166,17 @@ public class EnemyState : Character
 
 
         if (targetDistance > chaseRange && targetDistance > attackRange)
-            curState = State.Search;
+            enemyState = State.Search;
         if (targetDistance > attackRange)
-            curState = State.Chase;
+            enemyState = State.Chase;
         if (curHp < healthPanic)
-            curState = State.Retreat;
+            enemyState = State.Retreat;
 
     }
 
     void RetreatState()
     {
-        agent.speed *= runSpeed;
+        agent.speed = agent.speed * runSpeed;
         meshRenderer.material.color = Color.magenta;
         controller.RunAway(target.transform);
         stateText.text = "Retreat";
