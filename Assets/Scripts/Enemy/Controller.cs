@@ -10,7 +10,6 @@ public class Controller : MonoBehaviour
     public Vector3 movePoint;
     public EnemyState enemyState;
     public bool movePointSet;
-   
 
     private float searchRange;
     private float enemyDistanceRun;
@@ -43,29 +42,39 @@ public class Controller : MonoBehaviour
 
     public void StopMovement()
     {
-        agent.isStopped=true;
+        agent.isStopped = true;
     }
 
     public void RunAway(Transform target)
     {
+        Debug.Log("RunAway function called");
+        Debug.Log("Target: " + target.ToString());
+        Debug.Log("Target distance: " + targetDistance);
 
         Debug.Log(target.ToString());
 
-        if(targetDistance < enemyDistanceRun)
+        if (targetDistance < enemyDistanceRun)
         {
-            Vector3 dirToPlayer = transform.position + target.position;
-            Vector3 newPos = transform.position + dirToPlayer;
-            Debug.Log(newPos.ToString());
-
-            MoveToPosition(newPos);
+            if (targetDistance < enemyDistanceRun)
+            {
+                Vector3 dirToPlayer = transform.position - target.position;
+                Vector3 newPos = transform.position + dirToPlayer.normalized * enemyDistanceRun;
+                Debug.Log("New position: " + newPos.ToString());
+                MoveToPosition(newPos);
+            }
+            else
+            {
+                Debug.Log("Not running away - target distance is greater than enemyDistanceRun");
+            }
         }
+     
     }
 
     public void SearchMovement()
     {
         if (!movePointSet || Vector3.Distance(transform.position, movePoint) < 1f)
             SearchPoint();
-        if(movePointSet)
+        if (movePointSet)
             MoveToPosition(movePoint);
     }
 
@@ -74,9 +83,9 @@ public class Controller : MonoBehaviour
         float randomZ = Random.Range(-searchRange, searchRange);
         float randomX = Random.Range(-searchRange, searchRange);
 
-        movePoint = new Vector3(transform.position.x + randomX,0, transform.position.z + randomZ);
-        
-        if(Physics.Raycast(movePoint, -transform.up, 2f))
+        movePoint = new Vector3(transform.position.x + randomX, 0, transform.position.z + randomZ);
+
+        if (Physics.Raycast(movePoint, -transform.up, 2f))
             movePointSet = true;
     }
 }

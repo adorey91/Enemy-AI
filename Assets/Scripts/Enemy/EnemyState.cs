@@ -43,6 +43,7 @@ public class EnemyState : Character
 
     [Header("Retreat")]
     [SerializeField] private int healthPanic;
+    public float runSpeed;
     public float enemyDistanceRun;
 
     public float targetDistance;
@@ -88,6 +89,7 @@ public class EnemyState : Character
 
     void PatrolState()
     {
+        agent.speed = 1f;
         meshRenderer.material.color = Color.blue;
         controller.MoveToPosition(patrolWaypoints[waypointNumber].position);
         stateText.text = "Patroling";
@@ -107,6 +109,7 @@ public class EnemyState : Character
 
     void ChaseState()
     {
+        agent.speed = 1f;
         controller.MoveToTarget(target.transform);
         meshRenderer.material.color = new Color(1, 0.6f, 0);
         stateText.text = "Chasing";
@@ -123,6 +126,7 @@ public class EnemyState : Character
 
     void SearchState()
     {
+        agent.speed = 1f;
         stateText.text = "Searching";
         meshRenderer.material.color = Color.grey;
 
@@ -141,6 +145,7 @@ public class EnemyState : Character
 
     void AttackState()
     {
+        agent.speed = 1f;
         this.GetComponent<MeshRenderer>().material.color = Color.red;
         stateText.text = "Attacking";
         controller.StopMovement();
@@ -169,6 +174,7 @@ public class EnemyState : Character
 
     void RetreatState()
     {
+        agent.speed *= runSpeed;
         meshRenderer.material.color = Color.magenta;
         controller.RunAway(target.transform);
         stateText.text = "Retreat";
