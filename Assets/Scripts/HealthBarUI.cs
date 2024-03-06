@@ -16,11 +16,13 @@ public class HealthBarUI : MonoBehaviour
     public void OnEnable()
     {
         character.onTakeDamage += UpdateHealthBar;
+        character.onHeal += UpdateHealthBar;
     }
 
     public void OnDisable()
     {
         character.onTakeDamage -= UpdateHealthBar;
+        character.onHeal -= UpdateHealthBar;
     }
 
 

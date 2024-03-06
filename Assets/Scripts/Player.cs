@@ -7,16 +7,16 @@ using UnityEngine.InputSystem;
 public class Player : Character
 {
     public static Player current;
+    [SerializeField] HealthBarUI healthBarUI;
     private Vector2 playerInput;
     private Rigidbody rb;
 
     [SerializeField] private TMP_Text healthPercentage;
 
     [Header("Attack")]
-    [SerializeField] private float attackRange;
-    [SerializeField] private float attackRate;
-    private float lastAttackTime;
     [SerializeField] private GameObject attackPrefab;
+    [SerializeField] float timeBetweenAttacks;
+    bool alreadyAttacked;
 
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed;
@@ -44,6 +44,7 @@ public class Player : Character
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         curHp = maxHp;
+        healthBarUI.Start();
     }
     private void Update()
     {
@@ -107,12 +108,22 @@ public class Player : Character
     {
         if(context.performed)
         {
-            Vector3 fireDirection = playerCamera.transform.forward;
-            Vector3 spawnPosition = transform.position + fireDirection * 1f; 
+            if(!alreadyAttacked)
+            {
+                Vector3 fireDirection = playerCamera.transform.forward;
+                Vector3 spawnPosition = transform.position + fireDirection * 1f; 
 
-            GameObject proj = Instantiate(attackPrefab, spawnPosition, Quaternion.identity);
-            proj.transform.rotation = Quaternion.LookRotation(fireDirection);
-            proj.GetComponent<Projectile>().Setup(this);
+                GameObject proj = Instantiate(attackPrefab, spawnPosition, Quaternion.identity);
+                proj.transform.rotation = Quaternion.LookRotation(fireDirection);
+                proj.GetComponent<Projectile>().Setup(this);
+                alreadyAttacked = true;
+                Invoke(nameof(ResetAttack), timeBetweenAttacks);
+            }   
         }
+    }
+
+    void ResetAttack()
+    {
+        alreadyAttacked = false;
     }
 }

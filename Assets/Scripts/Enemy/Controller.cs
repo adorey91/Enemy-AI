@@ -2,30 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEngine.GraphicsBuffer;
 
 public class Controller : MonoBehaviour
 {
     private NavMeshAgent agent;
-    public Vector3 movePoint;
-    public EnemyState enemyState;
-    public bool movePointSet;
-
-    private float searchRange;
-    private float enemyDistanceRun;
-    private float targetDistance;
+    [SerializeField] float rotationSpeed;
 
     public void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        searchRange = enemyState.searchRange;
-        enemyDistanceRun = enemyState.enemyDistanceRun;
-        targetDistance = enemyState.targetDistance;
     }
 
     public void LookTowards(Vector3 direction)
     {
-        transform.rotation = Quaternion.LookRotation(direction);
+        Vector3 lookDirection = direction - agent.transform.position;
+        Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+
+        agent.transform.rotation = Quaternion.RotateTowards(agent.transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
 
     public void MoveToTarget(Transform target)
@@ -45,37 +38,23 @@ public class Controller : MonoBehaviour
         agent.isStopped = true;
     }
 
-    public void RunAway(Transform target)
+    public void RunAway(float enemyDistanceRun, Transform target)
     {
-        if (targetDistance < enemyDistanceRun)
-        {
             Vector3 dirToPlayer = transform.position - target.position;
             Vector3 newPos = transform.position + dirToPlayer.normalized * enemyDistanceRun;
             Debug.Log("New position: " + newPos.ToString());
             MoveToPosition(newPos);
-        }
-        else
-        {
-            Debug.Log("Not running away - target distance is greater than enemyDistanceRun");
-        }
+       
     }
 
-    public void SearchMovement()
-    {
-        if (!movePointSet || Vector3.Distance(transform.position, movePoint) < 1f)
-            SearchPoint();
-        if (movePointSet)
-            MoveToPosition(movePoint);
-    }
+    //public void SearchMovement(Vector3 lastKnownPlayerPosition, float searchRange)
+    //{
+    //    Vector3 randomDirection = Random.insideUnitSphere * searchRange;
+    //    randomDirection += lastKnownPlayerPosition;
+    //    Debug.Log(randomDirection.ToString());
+    //    NavMeshHit hit;
+    //    NavMesh.SamplePosition(randomDirection, out hit, searchRange, NavMesh.AllAreas);
 
-    private void SearchPoint()
-    {
-        float randomZ = Random.Range(-searchRange, searchRange);
-        float randomX = Random.Range(-searchRange, searchRange);
-
-        movePoint = new Vector3(transform.position.x + randomX, 0, transform.position.z + randomZ);
-
-        if (Physics.Raycast(movePoint, -transform.up, 2f))
-            movePointSet = true;
-    }
+    //    movePoint = hit.position;
+    //}
 }

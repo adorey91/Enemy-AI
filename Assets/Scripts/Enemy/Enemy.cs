@@ -1,121 +1,235 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
+using System;
 using UnityEngine;
 using UnityEngine.AI;
+using TMPro;
+
+public enum State
+{
+    Patrolling,
+    Chasing,
+    Searching,
+    Attacking,
+    Retreating
+}
 
 public class Enemy : Character
 {
-    enum State
-    {
-        patrol,
-        chasing,
-        search,
-        attack,
-        retreat,
-    }
-    private State curState = 0;
+    private Controller controller;
 
-    public Controller controller;
-
-    [Header("Ranges")]
-    [SerializeField] private float chaseRange;
-    [SerializeField] private float attackRange;
-
-    [Header("Attack")]
-    [SerializeField] private float timeBetweenAttacks;
-    bool alreadyAttacked;
-
-    [Header("Searching")]
-    [SerializeField] private float searchTime;
-
-    [Header("Retreat")]
+    [Header("Enemy Settings")]
+    [SerializeField] HealthBarUI healthBarUI;
+    [SerializeField] float walkSpeed;
+    [SerializeField] float chaseSpeed;
+    [SerializeField] float runSpeed;
     [SerializeField] int healthPanic;
-
-    [Header("Patrol")]
-    public Transform[] goal;
-    public int goalNumber = 0;
-    float distanceThreshold = 0.1f;
-
-    private float targetDistance;
+    [SerializeField] float enemyDistanceRun;
+    MeshRenderer meshRenderer;
     NavMeshAgent agent;
 
-    private void Start()
+
+    [Header("Target Settings")]
+    Vector3 targetPosition;
+    Vector3 lastKnownPlayerPosition;
+    float targetDistance;
+
+    [Header("State Settings")]
+    public State currentState;
+    [SerializeField] TMP_Text stateText;
+
+    [Header("Patroling")]
+    [SerializeField] Transform[] wayPointPos;
+    Vector3 lastPosition;
+    int wayPointInc;
+    float distanceThreshold = 0.1f;
+
+    [Header("Chasing")]
+    [SerializeField] float chaseRange = 12;
+
+    [Header("Searching")]
+    [SerializeField] TMP_Text lastPos;
+    [SerializeField] private float searchDuration = 5f;
+    private float searchTimer;
+
+    [Header("Attacking")]
+    [SerializeField] float attackRange = 5f;
+    [SerializeField] GameObject attackPrefab;
+    [SerializeField] float timeBetweenAttacks;
+    bool alreadyAttacked;
+
+    [Header("RunAway")]
+    [SerializeField] float healthIncreaseTime;
+    float runTimer;
+    bool healed;
+
+    public void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
+        curHp = maxHp;
+        controller = GetComponent<Controller>();
         target = Player.current;
+        agent = GetComponent<NavMeshAgent>();
+        meshRenderer = GetComponent<MeshRenderer>();
     }
 
-
-    private void Update()
+    public void Update()
     {
-        switch (curState)
+        UpdateStats();
+        
+        if (curHp <= healthPanic)
         {
-            case State.patrol:
-                PatrolState();
-                break;
-            case State.chasing:
-                ChasingState();
-                break;
-            case State.search:
-                SearchingState();
-                break;
-            case State.attack:
-                AttackState();
-                break;
-            case State.retreat:
-                RetreatState();
-                break;
+            healed = false;
+            AgentSetup(runSpeed, Color.white, "Running Away & Healing");
+            if (runTimer > 0)
+            {
+                if (targetDistance < enemyDistanceRun)
+                    controller.RunAway(enemyDistanceRun, target.transform);
+                else
+                    Debug.Log("Not running away - target distance is greater than enemyDistanceRun");
+            }
+            else
+            {
+                Heal();
+                healed = true;
+            }
+
+            runTimer -= Time.deltaTime;
+            currentState = State.Retreating;
+        }
+        else
+        {
+            switch (currentState)
+            {
+                case State.Patrolling:
+                    PatrollingUpdate();
+                    break;
+                case State.Chasing:
+                    ChasingUpdate();
+                    break;
+                case State.Searching:
+                    SearchingUpdate();
+                    break;
+                case State.Attacking:
+                    AttackingUpdate();
+                    break;
+                case State.Retreating:
+                    RetreatingUpdate();
+                    break;
+            }
         }
     }
 
-    void PatrolState()
+    private void UpdateStats()
     {
-        this.GetComponent<MeshRenderer>().material.color = Color.blue;
-        controller.MoveToPosition(goal[goalNumber].position);
-
-        if(Vector3.Distance(agent.transform.position, goal[goalNumber].position) <= distanceThreshold )
+        targetPosition = target.transform.position;
+        targetDistance = Vector3.Distance(transform.position, target.transform.position);
+        healthBarUI.transform.rotation = Quaternion.LookRotation(transform.position - Camera.main.transform.position);
+        lastPos.text = $"Last Known Pos: {lastKnownPlayerPosition}";
+        
+        if (healed == true)
         {
-            goalNumber++;
-            if(goalNumber == goal.Length)
-                goalNumber = 0;
+            healed = false;
+            runTimer = healthIncreaseTime;
         }
-
-        if (targetDistance < chaseRange && targetDistance > attackRange)
-            curState = State.chasing;
-        if (targetDistance < attackRange)
-            curState = State.attack;
-
     }
 
-    void ChasingState()
+    private void PatrollingUpdate()
     {
+        AgentSetup(walkSpeed, Color.blue, "Patroling");
+        controller.MoveToPosition(wayPointPos[wayPointInc].position);
+
+        if (Vector3.Distance(transform.position, wayPointPos[wayPointInc].position) <= distanceThreshold)
+        {
+            wayPointInc++;
+            if (wayPointInc == wayPointPos.Length)
+                wayPointInc = 0;
+        }
+
+        if (targetDistance <= chaseRange)
+        {
+            lastPosition = transform.position;
+            currentState = State.Chasing;
+        }
+    }
+
+    private void ChasingUpdate()
+    {
+        AgentSetup(chaseSpeed, new Color(1, 0.6f, 0), "Chasing");
         controller.MoveToTarget(target.transform);
+        lastKnownPlayerPosition = targetPosition;
 
-        if (targetDistance > chaseRange)
+        if (targetDistance >= chaseRange)
         {
-            curState = State.search;
-            searchTime = Time.time;
+            searchTimer = searchDuration;
+            currentState = State.Searching;
         }
-        if(targetDistance < attackRange)
-            curState = State.attack;
+        if (targetDistance < attackRange)
+            currentState = State.Attacking;
     }
 
-    void SearchingState()
+    private void SearchingUpdate()
     {
-        if (searchTime > 4f)
-            curState = State.patrol;
-        if (targetDistance < chaseRange)
-            curState = State.chasing;
+        AgentSetup(walkSpeed, Color.gray, "Searching");
+
+        if (Vector3.Distance(transform.position, lastKnownPlayerPosition) <= distanceThreshold)
+            searchTimer -= Time.deltaTime;
+
+        if (searchTimer <= 0)
+            currentState = State.Retreating;
+        else if (targetDistance <= attackRange)
+            currentState = State.Attacking;
+        else if (targetDistance <= chaseRange)
+            currentState = State.Chasing;
+        else
+            controller.MoveToPosition(lastKnownPlayerPosition);
     }
 
-    void AttackState()
+    private void AttackingUpdate()
     {
+        AgentSetup(0, Color.red, "Attacking");
+        controller.StopMovement();
 
+        if (!alreadyAttacked)
+        {
+            Vector3 directionToTarget = targetPosition - transform.position;
+            directionToTarget.Normalize();
+            Vector3 spawnPosition = transform.position + directionToTarget * 1f;
+
+            GameObject proj = Instantiate(attackPrefab, spawnPosition, Quaternion.LookRotation(targetPosition - transform.position));
+            proj.GetComponent<Projectile>().Setup(this);
+            alreadyAttacked = true;
+            Invoke(nameof(ResetAttack), timeBetweenAttacks);
+        }
+        if (targetDistance >= attackRange)
+        {
+            if (targetDistance >= chaseRange)
+            {
+                searchTimer = searchDuration;
+                currentState = State.Searching;
+            }
+            if (targetDistance <= chaseRange)
+                currentState = State.Chasing;
+        }
     }
 
-    void RetreatState()
+    private void RetreatingUpdate()
     {
+        AgentSetup(runSpeed, Color.cyan, "Retreating");
+        controller.MoveToPosition(lastPosition);
 
+        if (Vector3.Distance(transform.position, lastPosition) <= distanceThreshold)
+            currentState = State.Patrolling;
+        if (targetDistance <= chaseRange)
+            currentState = State.Chasing;
+    }
+
+    public void AgentSetup(float moveSpeed, Color color, string enemyState)
+    {
+        agent.speed = moveSpeed;
+        meshRenderer.material.color = color;
+        stateText.text = $"Enemy State: {enemyState}";
+    }
+
+    void ResetAttack()
+    {
+        alreadyAttacked = false;
     }
 }
