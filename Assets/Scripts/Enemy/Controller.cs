@@ -20,6 +20,7 @@ public class Controller : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         searchRange = enemyState.searchRange;
         enemyDistanceRun = enemyState.enemyDistanceRun;
+        targetDistance = enemyState.targetDistance;
     }
 
     public void LookTowards(Vector3 direction)
@@ -46,14 +47,7 @@ public class Controller : MonoBehaviour
 
     public void RunAway(Transform target)
     {
-        Debug.Log("RunAway function called");
-        Debug.Log("Target: " + target.ToString());
-        Debug.Log("Target distance: " + enemyState.targetDistance);
-
-        Debug.Log(target.ToString());
-
-
-        if (enemyState.targetDistance < enemyDistanceRun)
+        if (targetDistance < enemyDistanceRun)
         {
             Vector3 dirToPlayer = transform.position - target.position;
             Vector3 newPos = transform.position + dirToPlayer.normalized * enemyDistanceRun;

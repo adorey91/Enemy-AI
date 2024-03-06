@@ -13,10 +13,11 @@ public class EnemyState : Character
         Search,
         Attack,
         Retreat,
+        RunAway,
     }
 
     private State enemyState;
-
+    [SerializeField] float moveSpeed;
     [SerializeField] TMP_Text stateText;
 
     private Controller controller;
@@ -56,6 +57,7 @@ public class EnemyState : Character
         target = Player.current;
         meshRenderer = GetComponent<MeshRenderer>();
         controller = GetComponent<Controller>();
+        agent.speed = moveSpeed;
     }
 
     private void Update()
@@ -69,29 +71,34 @@ public class EnemyState : Character
 
     void UpdateState()
     {
-        switch (enemyState)
+        if (curHp < healthPanic)
+            State.RunAway;
+        else
         {
-            case State.Patrol:
-                PatrolState();
-                break;
-            case State.Chase:
-                ChaseState();
-                break;
-            case State.Search:
-                SearchState();
-                break;
-            case State.Attack:
-                AttackState();
-                break;
-            case State.Retreat:
-                RetreatState();
-                break;
+            switch (enemyState)
+            {
+                case State.Patrol:
+                    PatrolState();
+                    break;
+                case State.Chase:
+                    ChaseState();
+                    break;
+                case State.Search:
+                    SearchState();
+                    break;
+                case State.Attack:
+                    AttackState();
+                    break;
+                case State.Retreat:
+                    RetreatState();
+                    break;
+            }
         }
     }
 
     void PatrolState()
     {
-        agent.speed = 1f;
+        agent.speed = moveSpeed;
         meshRenderer.material.color = Color.blue;
         controller.MoveToPosition(patrolWaypoints[waypointNumber].position);
         stateText.text = "Patroling";
@@ -103,15 +110,13 @@ public class EnemyState : Character
                 waypointNumber = 0;
         }
 
-        if (targetDistance < chaseRange && targetDistance > attackRange)
+        if (targetDistance < chaseRange)
             enemyState = State.Chase;
-        if (targetDistance < attackRange)
-            enemyState = State.Attack;
     }
 
     void ChaseState()
     {
-        agent.speed = 1f;
+        agent.speed = moveSpeed;
         controller.MoveToTarget(target.transform);
         meshRenderer.material.color = new Color(1, 0.6f, 0);
         stateText.text = "Chasing";
@@ -128,7 +133,7 @@ public class EnemyState : Character
 
     void SearchState()
     {
-        agent.speed = 1f;
+        agent.speed = moveSpeed;
         stateText.text = "Searching";
         meshRenderer.material.color = Color.grey;
 
@@ -147,7 +152,7 @@ public class EnemyState : Character
 
     void AttackState()
     {
-        agent.speed = 1f;
+        agent.speed = moveSpeed;
         this.GetComponent<MeshRenderer>().material.color = Color.red;
         stateText.text = "Attacking";
         controller.StopMovement();
@@ -176,10 +181,18 @@ public class EnemyState : Character
 
     void RetreatState()
     {
-        agent.speed = agent.speed * runSpeed;
+        agent.speed = moveSpeed * runSpeed;
         meshRenderer.material.color = Color.magenta;
         controller.RunAway(target.transform);
         stateText.text = "Retreat";
+    }
+
+    void RunAway()
+    {
+        agent.speed = moveSpeed * runSpeed;
+        meshRenderer.material.color = new Color(0.6f, 0.3f, 0);
+        controller.RunAway(target.transform);
+        stateText.text = "Run Away";
     }
 
     void ResetAttack()
